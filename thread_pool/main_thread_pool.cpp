@@ -7,6 +7,7 @@
 
 int main(int argc, char** argv)
 {
+    using namespace std;
     using namespace Is;
     ThreadPool thread_pool(4);
     int task_num = 8;
@@ -15,20 +16,20 @@ int main(int argc, char** argv)
     for (int i = 0; i < task_num; ++i)
     {
         result_array.emplace_back(thread_pool.enqueue([i]() {
-            std::cout << "Hello " << i << std::endl;
-            std::this_thread::sleep_for(std::chrono::seconds(1));
-            std::cout << "World " << i << std::endl;
+            cout << "Hello " << i << endl;
+            this_thread::sleep_for(chrono::seconds(1));
+            cout << "World " << i << endl;
             return i*i;
         }));
     }
 
-    std::cout << "Wait future result on Main Thread." << std::endl;
+    cout << "Wait future result on Main Thread." << endl;
     for (auto& result : result_array)
     {
         result.wait();
         cout << result.get() << " ";
     }
-    std::cout << std::endl;
+    cout << endl;
 
     cout << "[END] Main Thread." << endl;
 

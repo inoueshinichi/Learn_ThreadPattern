@@ -32,5 +32,10 @@ add_executable(thread_recursive_mutex
     main_thread_recursive_mutex.cpp
 )
 
+if(MSVC)
+    add_executable(thread_member_function
+        main_thread_member_function.cpp
+    )
+endif()
 
 message(STATUS "========== [END] thread_pattern ==========")

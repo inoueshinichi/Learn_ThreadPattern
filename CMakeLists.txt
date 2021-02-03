@@ -170,7 +170,7 @@ message(STATUS "========== [START] C++ Build Core ==========")
 add_subdirectory(lib)
 
 # ========== Executable File ==========
-add_subdirectory(thread_pool)
+add_subdirectory(thread_pattern)
 
 
 message(STATUS "========== [END] C++ Build Core ==========")
@@ -188,14 +188,14 @@ if(BUIlD_CPP_TEST)
     endif()
     enable_testing()
     # file(GLOB TEST_SOURCE path/to/test_*.cpp)
-    # add_executable(test_thread_pattern_lib ${TEST_SOURCE})
-    # add_dependencies(test_thread_pattern_lib thread_pattern)
-    # target_link_libraries(test_thread_pattern_lib gtest gtest_main)
-    # set_target_properties(test_thread_pattern_lib PROPERTIES
+    # add_executable(test_threadlib ${TEST_SOURCE})
+    # add_dependencies(test_threadlib threadlib)
+    # target_link_libraries(test_threadlib gtest gtest_main)
+    # set_target_properties(test_threadlib PROPERTIES
     #     EXCLUDE_FROM_DEFAULT_BUILD TRUE   # Execlude this target form default target in build @windows
     #     EXCLUDE_FROM_ALL TRUE             # Execlude this target from all target in build @unix
     # )
-    # add_test(NAME test_thread_pattern_lib COMMAND test_thread_pattern_lib)
+    # add_test(NAME test_threadlib COMMAND test_threadlib)
     # add_test(NAME <name> COMMAND <command> [<arg>...]
     #     [CONFIGURATIONS <config>...]
     #     [WORKING_DIRECTORY <dir>]

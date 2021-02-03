@@ -12,8 +12,8 @@ message(STATUS "ThreadPattern Module Include Dir: ${THREAD_PATTERN_INCLUDE_DIR}"
 file(GLOB THREAD_PATTERB_INCLUDES ${PROJECT_SOURCE_DIR}/include/*.hpp)
 
 # header-only libarary
-add_library(thread_pattern INTERFACE)
-target_include_directories(thread_pattern INTERFACE ${THREAD_PATTERN_INCLUDE_DIR})
+add_library(threadlib INTERFACE)
+target_include_directories(threadlib INTERFACE ${THREAD_PATTERN_INCLUDE_DIR})
 # target_sources(thread_pattern PRIVATE ${THREAD_PATTERN_SOURCES})
 
 message(STATUS "========== [END] thread_pattern library ==========")

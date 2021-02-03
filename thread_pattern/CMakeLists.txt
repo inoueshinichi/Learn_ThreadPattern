@@ -28,5 +28,9 @@ add_executable(thread_unique_try_lock
     main_thread_unique_try_lock.cpp
 )
 
+add_executable(thread_recursive_mutex
+    main_thread_recursive_mutex.cpp
+)
+
 
 message(STATUS "========== [END] thread_pattern ==========")

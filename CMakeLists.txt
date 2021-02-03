@@ -1,8 +1,24 @@
 cmake_minimum_required(VERSION 3.14.0)
-project(thread_pattern LANGUAGES CXX VERSION 0.1.0)
+
+###############################################################################
+# Version
+###############################################################################
+message(STATUS "========== [START] Version Management ==========")
 
 # CMake Version
-message("CMake Version: ${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION}.${CMAKE_PATCH_VERSION}.${CMAKE_TWEAK_VERSION}")
+message(STATUS "CMake Version: ${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION}.${CMAKE_PATCH_VERSION}.${CMAKE_TWEAK_VERSION}")
+
+# プロジェクト Version
+file(STRINGS ${CMAKE_SOURCE_DIR}/VERSION.txt versions NEWLINE_CONSUME)
+string(REGEX REPLACE [[^([A-z0-9.\-_]+).*$]] [[\1]] version ${versions})
+string(REGEX REPLACE [[^([0-9]+)\.([0-9]+)\.(.*)$]] [[\1]] version_major ${version})
+string(REGEX REPLACE [[^([0-9]+)\.([0-9]+)\.(.*)$]] [[\2]] version_minor ${version})
+string(REGEX REPLACE [[^([0-9]+)\.([0-9]+)\.(.*)$]] [[\3]] version_patch ${version})
+
+# プロジェクト名
+project(thread_pattern LANGUAGES CXX VERSION ${version_major}.${version_minor}.${version_patch})
+
+message(STATUS "========== [END] Version Management ==========")
 
 
 ###############################################################################
@@ -10,14 +26,20 @@ message("CMake Version: ${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION}.${CMAKE_PA
 ###############################################################################
 message(STATUS "========== [START] C++ All Target Options ==========")
 
-# ========== Options ==========
+# Switching Option
 option(BUILD_OPENMP "Enable/Disable OpenMP" ON)
-option(BUILD_CPP_TEST "Enable/Disable Test" ON)
-option(BUILD_SHARED_LIB "Enable/Disable DLL Libs" ON)
+option(BUILD_CPP_TEST "Building test" OFF)
+option(BUILD_CPP_SHARED_LIBS "Enable/Disable shared libraries" ON)
+option(BUILD_CPP_COMPILE_PCH "Enable/Disable compile pre-compile header" OFF)
+option(BUILD_CPP_USE_PCH "Enable/Disable use pre-compile header" OFF)
 
-if (BUILD_SHARED_LIBS)
+# Global Shared lib flag
+if(BUILD_CPP_SHARED_LIBS)
     set(BUILD_SHARED_LIBS ON)
+else()
+    set(BUILD_SHARED_LIBS OFF)
 endif()
+
 
 # C++20
 set(CMAKE_CXX_STANDARD 20)
@@ -37,47 +59,44 @@ if (MSVC)
     set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "/Od /MDd /Zi /RTC1")
 
     if(BUILD_OPENMP)
-        set(CMAKE_CXX_FFAGS "${CMAKE_CXX_FFAGS} /openmp")
+        add_compile_options("$<$<C_COMPILER_ID:MSVC>:/openmp>")
+        add_compile_options("$<$<CXX_COMPILER_ID:MSVC>:/openmp>")
     endif()
 
-    # ソースコードでUTF-8を使う(MSVC++)
-    add_compile_options($<$<CXX_COMPILER_ID:MSVC>:/utf-8>)
+    # ソースコードでUTF-8を使う(MSVC)
+    add_compile_options("$<$<C_COMPILER_ID:MSVC>:/utf-8>")
+    add_compile_options("$<$<CXX_COMPILER_ID:MSVC>:/utf-8>")
+
     # C++11以降を利用した場合にマクロ変数__cplusplusの値を利用中のC++バージョンに合わせる(つけないとC++98相当の値になる)
     add_compile_options($<$<CXX_COMPILER_ID:MSVC>:/Zc:__cplusplus>)
     string(APPEND CMAKE_CXX_FLAGS " /Zc:__cplusplus")
 
+    # オブジェクトファイル(*.obj)のサイズ制限を解放
+    add_compile_options("$<$<C_COMPILER_ID:MSVC>:/bigobj>")
+    add_compile_options("$<$<CXX_COMPILER_ID:MSVC>:/bigobj>")
 
-    # プリコンパイル済みヘッダーの使用(/Yu)を全体に設定
-    # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Yu")
+    # sprintf_s系の邪魔なコンパイラ仕様を回避
+    add_compile_definitions(_CRT_SECURE_NO_WARNINGS)
+
+    # プリコンパイル済みヘッダーの生成と利用
+    if(BUILD_CPP_COMPILE_PCH)
+        # somthing
+    endif()
+    
+    if(BUILD_CPP_USE_PCH)
+        # somthing
+    endif()
 
 elseif(APPLE)
+    message(STATUS "Compiler: Clang in macOS")    
 
-message(STATUS "Compiler: Clang in macOS")    
-
-    # Build Options(マルチコンフィギュレーション:visual studio対応)
-    set(CMAKE_CXX_FLAGS "-O1")
-    set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g")
-    set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG")
-    set(CMAKE_CXX_FLAGS_MINSIZEREL "-Os -DNDEBUG")
-    set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O2 -g -DNDEBUG")
-
-    # 警告
-    string(APPEND CMAKE_CXX_FLAGS " -Wall")
-    # string(APPEND CMAKE_CXX_FLAGS " -Werror")
-    # string(APPEND CMAKE_CXX_FLAGS " -Weverything")
-    # string(APPEND CMAKE_CXX_FLAGS " -Wno-c++98-compat")
-    # string(APPEND CMAKE_CXX_FLAGS " -Wno-c++98-compat-pedanti")
-
-    # ソースコードでUTF-8を使う(GCC++)
-    add_compile_options($<$<CXX_COMPILER_ID:Clang>:/utf-8>)
-    # C++11以降を利用した場合にマクロ変数__cplusplusの値を利用中のC++バージョンに合わせる(つけないとC++98相当の値になる)
-    add_compile_options($<$<CXX_COMPILER_ID:Clang>:/Zc:__cplusplus>) 
+    message(FATAL_ERROR "No Implimentation of LLVM with Clang(++) in macOS.")  
 
 else()
     message(STATUS "Compiler: GCC in Linux")
 
     # 詳細情報の表示
-    set(CMAKE_VERBOSE_MAKEFILE ON)
+    # set(CMAKE_VERBOSE_MAKEFILE ON)
 
     # Build Options(マルチコンフィギュレーション:visual studio対応)
     set(CMAKE_CXX_FLAGS "-O1")
@@ -85,6 +104,12 @@ else()
     set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG")
     set(CMAKE_CXX_FLAGS_MINSIZEREL "-Os -DNDEBUG")
     set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O2 -g -DNDEBUG")
+
+    # OpenMP
+    if(BUILD_OPENMP)
+        add_compile_options("$<$<C_COMPILER_ID:GCC>:-fopenmp>")
+        add_compile_options("$<$<CXX_COMPILER_ID:GCC>:-fopenmp>")
+    endif()
 
     # C++標準に準拠しない拡張機能を無効化
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --pedantic-errors")
@@ -116,10 +141,14 @@ else()
     # string(APPEND CMAKE_CXX_FLAGS " -Werror")
     # string(APPEND CMAKE_CXX_FLAGS " -Wno-unused")
 
-    # ソースコードでUTF-8を使う(GCC++)
-    add_compile_options($<$<CXX_COMPILER_ID:GCC>:/utf-8>)
-    # C++11以降を利用した場合にマクロ変数__cplusplusの値を利用中のC++バージョンに合わせる(つけないとC++98相当の値になる)
-    add_compile_options($<$<CXX_COMPILER_ID:GCC>:/Zc:__cplusplus>)
+    # プリコンパイル済みヘッダーの生成と利用
+    if(BUILD_CPP_COMPILE_PCH)
+        # somthing
+    endif()
+    
+    if(BUILD_CPP_USE_PCH)
+        # somthing
+    endif()
 
 endif()
 
@@ -150,11 +179,39 @@ message(STATUS "========== [END] C++ Build Core ==========")
 # C++ Testing
 ###############################################################################
 message(STATUS "========== [START] C++ Build Test ==========")
-include(CTest)
-enable_testing()
+
+# Enable/Disable
+if(BUIlD_CPP_TEST)
+    include(CTest)
+    if (WIN32)
+        set(BUILD_SHARED_LIBS ON CACHE BOOL "Force to build gtest with dll on Windows.")
+    endif()
+    enable_testing()
+    # file(GLOB TEST_SOURCE path/to/test_*.cpp)
+    # add_executable(test_thread_pattern_lib ${TEST_SOURCE})
+    # add_dependencies(test_thread_pattern_lib thread_pattern)
+    # target_link_libraries(test_thread_pattern_lib gtest gtest_main)
+    # set_target_properties(test_thread_pattern_lib PROPERTIES
+    #     EXCLUDE_FROM_DEFAULT_BUILD TRUE   # Execlude this target form default target in build @windows
+    #     EXCLUDE_FROM_ALL TRUE             # Execlude this target from all target in build @unix
+    # )
+    # add_test(NAME test_thread_pattern_lib COMMAND test_thread_pattern_lib)
+    # add_test(NAME <name> COMMAND <command> [<arg>...]
+    #     [CONFIGURATIONS <config>...]
+    #     [WORKING_DIRECTORY <dir>]
+    # )
+endif()
+
+message(STATUS "========== [END] C++ Build Test ==========")
+
+###############################################################################
+# CMake Project (C++?) Packaging
+###############################################################################
+message(STATUS "========== [START] C++ CMake Project(C++?) Packaging ==========")
 
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
 include(CPack)
 
-message(STATUS "========== [END] C++ Build Test ==========")
+message(STATUS "========== [END] C++ CMake Project(C++?) Packaging ==========")
+
